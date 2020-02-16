@@ -28,7 +28,7 @@ library(seqinr)
 
 # read in sequence alignment
 # alignment should only include variable positions
-aln <- read.alignment("example.aln",format="fasta")
+aln <- read.alignment("variablesites.fasta",format="fasta")
 
 # convert alignment to matrix format
 tb <- as.matrix(aln)
@@ -127,3 +127,43 @@ for (i in 1:colorMax)
 
 #generate the colored matrix
 color2D.matplot(colorMatrix,cellcolors=colors,border=NA)
+
+
+dev.new()
+
+
+#### This is an attempt to automatically define and color haploblocks
+#### In progress. Use with caution.
+
+haploMatrix = matrix(ncol = ncol(colorMatrix),nrow=nrow(colorMatrix))
+for (i in 1:nrow(colorMatrix))
+{	
+	uniqueColors <- rev(sort(table(colorMatrix[i,])))
+	for (k in 1:length(uniqueColors))
+	{	tempColor = as.numeric(names(uniqueColors)[k])
+		left = min(which(colorMatrix[i,] == tempColor))
+		right = max(which(colorMatrix[i,] == tempColor))
+		if (left != right) # we don't want single variants being colored
+		{
+			haploDensity = length(which(colorMatrix[i,] == tempColor)) / (right - left)	
+			if (haploDensity >0.10)
+			{
+				haploMatrix[i,left:right] = tempColor
+			}
+		}
+	}
+}
+
+
+colors <- colorMatrix
+colors[] <- "gray"  #gray will be the default color
+#the 30 color palette is included below
+colPalette <- c("#201923", "#ffffff", "#fcff5d", "#7dfc00", "#0ec434", "#228c68", "#8ad8e8", "#235b54", "#29bdab", "#3998f5", "#37294f", "#277da7", "#3750db", "#f22020", "#991919", "#ffcba5", "#e68f66", "#c56133", "#96341c", "#632819", "#ffc413", "#f47a22", "#2f2aa0", "#b732cc", "#772b9d", "#f07cab", "#d30b94", "#edeff3", "#c3a5b4", "#946aa2", "#5d4c86")
+for (i in 1:colorMax)
+{
+	colors[haploMatrix == i] <- colPalette[i]
+}
+
+color2D.matplot(haploMatrix,cellcolors=colors,border=NA)
+
+
