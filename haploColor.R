@@ -28,7 +28,7 @@ library(seqinr)
 
 # read in sequence alignment
 # alignment should only include variable positions
-aln <- read.alignment("variablesites.fasta",format="fasta")
+aln <- read.alignment("example.aln",format="fasta")
 
 # convert alignment to matrix format
 tb <- as.matrix(aln)
