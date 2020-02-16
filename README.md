@@ -15,11 +15,12 @@ Given an initial alignment of variable sites (e.g., example.aln), haploColor.R w
 
 This is a greedy algorithm that still has some issues.
 
-+ For each sequence: 
-++ For its most common to least common colors:
-+++ Assign that color to a block defined by its min to max position if its density is > a threshold
-    
-
+- For each sequence:
+   - For its most common to least common colors
+     - Compute: density = # occurrences from min to max position / (max-min)
+     - If density > threshold
+     - Assign that color to a block from its min to max position
+     
 
 ![](https://github.com/doxeylab/haploColor/raw/master/haploColor.png "haploColor visualization")
 
