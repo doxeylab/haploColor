@@ -64,7 +64,7 @@ for (i in 1:nrow(tb))
 }
 
 #uncomment if you want to visualize this initial coloring
-#pheatmap(colorMatrix,cluster_cols=F)
+# pheatmap(colorMatrix,cluster_cols=F)
 
 
 #repeat loop
@@ -135,28 +135,54 @@ dev.new()
 #### This is an attempt to automatically define and color haploblocks
 #### In progress. Use with caution.
 
-haploMatrix = matrix(ncol = ncol(colorMatrix),nrow=nrow(colorMatrix))
-for (i in 1:nrow(colorMatrix))
-{	
-	uniqueColors <- rev(sort(table(colorMatrix[i,])))
-	for (k in 1:length(uniqueColors))
-	{	tempColor = as.numeric(names(uniqueColors)[k])
-		left = min(which(colorMatrix[i,] == tempColor))
-		right = max(which(colorMatrix[i,] == tempColor))
-		if (left != right) # we don't want single variants being colored
-		{
-			haploDensity = length(which(colorMatrix[i,] == tempColor)) / (right - left)	
-			if (haploDensity >0.10)
-			{
-				haploMatrix[i,left:right] = tempColor
-			}
-		}
-	}
+# haploMatrix = matrix(ncol = ncol(colorMatrix),nrow=nrow(colorMatrix))
+# for (i in 1:nrow(colorMatrix))
+# {
+#         uniqueColors <- rev(sort(table(colorMatrix[i,])))
+#         for (k in 1:length(uniqueColors))
+#         {	tempColor = as.numeric(names(uniqueColors)[k])
+#                 left = min(which(colorMatrix[i,] == tempColor))
+#                 right = max(which(colorMatrix[i,] == tempColor))
+#                 if (left != right) # we don't want single variants being colored
+#                 {
+#                         haploDensity = length(which(colorMatrix[i,] == tempColor)) / (right - left)
+#                         if (haploDensity >0.10)
+#                         {
+#                                 haploMatrix[i,left:right] = tempColor
+#                         }
+#                 }
+#         }
+# }
+
+#-------------------------------------------------------------------------------
+
+mvavg <- function(x, n = 5, thresh = 0.4) {
+  out <- stats::filter(x, rep(1 / n, n), sides = 2)
+  out[is.na(out)] <- 0
+  as.logical(out > thresh)
 }
 
+haploMatrix <- matrix(ncol = ncol(colorMatrix), nrow = nrow(colorMatrix))
+for (i in 1:nrow(colorMatrix)) {
+  uniqueColors <- rev(sort(table(colorMatrix[i, ])))
+  for (k in 1:length(uniqueColors)) {
+    tempColor <- as.numeric(names(uniqueColors)[k])
+    if (tempColor == 1) next
+    blocks <- colorMatrix[i, ] == tempColor
+    blocks <- mvavg(blocks, 10, 0.2)
+    blocks <- mvavg(blocks, 10, 0.4)
+    blocks <- mvavg(blocks, 10, 0.6)
+    blocks <- mvavg(blocks, 10, 0.2)
+    if (sum(blocks) > 1) {
+      haploMatrix[i, blocks] <- tempColor
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
 
 colors <- colorMatrix
-colors[] <- "gray"  #gray will be the default color
+colors[] <- "black"  #gray will be the default color
 #the 30 color palette is included below
 colPalette <- c("#201923", "#ffffff", "#fcff5d", "#7dfc00", "#0ec434", "#228c68", "#8ad8e8", "#235b54", "#29bdab", "#3998f5", "#37294f", "#277da7", "#3750db", "#f22020", "#991919", "#ffcba5", "#e68f66", "#c56133", "#96341c", "#632819", "#ffc413", "#f47a22", "#2f2aa0", "#b732cc", "#772b9d", "#f07cab", "#d30b94", "#edeff3", "#c3a5b4", "#946aa2", "#5d4c86")
 for (i in 1:colorMax)
